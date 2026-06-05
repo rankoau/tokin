@@ -59,6 +59,12 @@ cd contracts
 forge install OpenZeppelin/openzeppelin-contracts@v5.6.1
 ```
 
+Write an explicit `remappings.txt` to ensure that both `forge` and IDE plugins understand `@openzeppelin/*` import paths:
+
+```bash
+forge remappings > remappings.txt
+```
+
 *why install the whole lot? I just get a stack of compiler warnings for contract code I am not using*
 
 Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version:
