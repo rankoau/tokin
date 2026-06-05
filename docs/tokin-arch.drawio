@@ -1,0 +1,19 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.2.9 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.2.9">
+  <diagram name="Page-1" id="DB6GUnPgmZKXByMYca-c">
+    <mxGraphModel dx="701" dy="705" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="BB50GwiutF8IcIIvkdjU-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Deployer wallet" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="BB50GwiutF8IcIIvkdjU-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="0x000...dEaD" vertex="1">
+          <mxGeometry height="60" width="120" x="100" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BB50GwiutF8IcIIvkdjU-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Aerodrom Router" vertex="1">
+          <mxGeometry height="60" width="120" x="170" y="370" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

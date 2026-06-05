@@ -1,0 +1,6 @@
+.DS_Store
+*.bkp
+out/
+cache/
+broadcast/
+.env
