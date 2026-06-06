@@ -1,4 +1,4 @@
-# Squitch — Launch Plan
+# Tokin — Launch Plan
 
 > **Status:** planning. Nothing deployed. Nothing irreversible has happened yet.
 >
@@ -22,7 +22,7 @@
 
 obstok's three irreversibility guarantees translate to EVM as follows:
 
-| obstok (Solana / Token-2022)        | squitch (Base / ERC-20)                                    |
+| obstok (Solana / Token-2022)        | tokin (Base / ERC-20)                                    |
 |---                                  |---                                                         |
 | Renounce mint authority             | Contract has **no mint function** post-deploy (`_mint` only in constructor) |
 | Inject 100% of supply into LP       | Same — constructor mints to deployer, deployer adds all to pool |
@@ -66,8 +66,8 @@ Additional EVM-specific guarantees worth stacking on:
               │                │                            │
               ▼                ▼                            ▼
       ┌──────────────┐  ┌──────────────────┐     ┌────────────────────┐
-      │ Squitch.sol  │  │ Aerodrome Router │     │  Cloudflare Pages  │
-      │ ERC-20, 1B   │  │  addLiquidity()  │     │  squitch.pages.dev │
+      │ Tokin.sol  │  │ Aerodrome Router │     │  Cloudflare Pages  │
+      │ ERC-20, 1B   │  │  addLiquidity()  │     │  tokin.pages.dev │
       │ no owner     │  │  → mints LP token│     │  /token-list.json  │
       │ no mint fn   │  │                  │     │  /logo.png         │
       └──────┬───────┘  └────────┬─────────┘     └────────────────────┘
@@ -93,7 +93,7 @@ Numbered for the runsheet to follow during execution. Each phase has an explicit
 - [ ] `.gitignore` for `out/`, `cache/`, `broadcast/`, `.env`
 - [ ] **Exit:** `forge build` green.
 
-### Phase 1 — Contract (`contracts/src/Squitch.sol`)
+### Phase 1 — Contract (`contracts/src/Tokin.sol`)
 Target: < 30 lines including imports. Sketch:
 
 ```solidity
@@ -103,10 +103,10 @@ pragma solidity ^0.8.26;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-contract Squitch is ERC20, ERC20Permit {
+contract Tokin is ERC20, ERC20Permit {
     constructor(address recipient)
-        ERC20("Squitch", "SQUITCH")
-        ERC20Permit("Squitch")
+        ERC20("Tokin", "SQUITCH")
+        ERC20Permit("Tokin")
     {
         _mint(recipient, 1_000_000_000 * 10 ** decimals());
     }
@@ -120,13 +120,13 @@ Notes:
 
 - [ ] **Exit:** contract compiles, no warnings.
 
-### Phase 2 — Tests (`contracts/test/Squitch.t.sol`)
+### Phase 2 — Tests (`contracts/test/Tokin.t.sol`)
 Foundry test suite. Cover:
 - Total supply == 1B * 10^18.
 - Deployer receives full supply.
 - `transfer` works between EOAs.
 - `permit` works (signature → allowance).
-- No external function exposes minting (use `vm.expectRevert` against any `mint(...)` selector — sanity test that "the function doesn't exist" stays true even after refactors).
+- No external `mint` function exposes minting capability (sanity test that the selector doesn't exist even after refactors).
 - Fuzz: random `transfer` amounts, invariant `totalSupply` unchanged.
 
 - [ ] **Exit:** `forge test -vvv` all green, gas snapshot saved.
@@ -174,8 +174,8 @@ forge script contracts/script/Deploy.s.sol \
 
 ### Phase 7 — Create pool + seed liquidity (Aerodrome)
 Two-step:
-1. `Router.addLiquidity(squitch, WETH, false /* stable=false */, supply, ethAmount, ..., deployer, deadline)` — `false` selects a volatile (cpAMM) pool. Aerodrome will create it on first call.
-2. Confirm the pool address via `PoolFactory.getPool(squitch, WETH, false)` and verify LP token balance on the deployer.
+1. `Router.addLiquidity(tokin, WETH, false /* stable=false */, supply, ethAmount, ..., deployer, deadline)` — `false` selects a volatile (cpAMM) pool. Aerodrome will create it on first call.
+2. Confirm the pool address via `PoolFactory.getPool(tokin, WETH, false)` and verify LP token balance on the deployer.
 
 Reference addresses on Base (verify before pasting into a script):
 - Aerodrome Router: `0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43`
@@ -221,13 +221,13 @@ cast code $TOKEN | wc -c                            # nonzero (deployed)
 ## 6. Final repo layout (target)
 
 ```
-squitch/
+tokin/
 ├── README.md                   # one-paragraph pitch + addresses (post-launch)
 ├── PLAN.md                     # this file
 ├── contracts/
 │   ├── foundry.toml
-│   ├── src/Squitch.sol
-│   ├── test/Squitch.t.sol
+│   ├── src/Tokin.sol
+│   ├── test/Tokin.t.sol
 │   └── script/
 │       ├── Deploy.s.sol
 │       ├── SeedPool.s.sol
@@ -267,7 +267,7 @@ Things future-you (or a reader) will trip on if they assume parity with the Sola
 Don't bridge ETH until these are pinned:
 
 - [ ] **Seed liquidity in ETH.** obstok used ~0.1 SOL (~$15 at launch). Base equivalent ≈ 0.005 ETH (~$15). Decide deliberately — initial price = `ETH_seeded / 1e9 SQUITCH`.
-- [ ] **Token name and symbol.** Assume "Squitch" / "SQUITCH" unless you want otherwise.
+- [ ] **Token name and symbol.** Assume "Tokin" / "SQUITCH" unless you want otherwise.
 - [ ] **Logo.** Reuse obstok's or new? If new, settle on PNG ≥ 512×512 transparent.
 - [ ] **Description string for token list.** One sentence. State explicitly that it's worthless (mirrors obstok's honesty norm).
 - [ ] **RPC provider.** Public Base RPC works but rate-limits; Alchemy/QuickNode free tier is fine. Pick one and pin it in `.env`.

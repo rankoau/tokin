@@ -5,10 +5,12 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 contract Tokin is ERC20, ERC20Permit {
+    
     constructor(address recipient)
         ERC20("Tokin'", "TOKIN")
         ERC20Permit("Tokin'")
     {
         _mint(recipient, 1_000_000_000 * 10 ** decimals());
     }
+
 }

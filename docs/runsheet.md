@@ -7,11 +7,11 @@ This document was assembled while working through the process end-to-end.
 | Decision | Choice | Rationale |
 |---|---|---|
 | Chain | **Base (Ethereum L2)** | Strongest memecoin culture of any L2 due to  |
-| Name | Tokin' | A joke about a koala with unfettered access to gumleaves |
-| Symbol (ticker) | TOKIN | Not taken according to etherscan.io
+| Name | **Tokin'** | A joke about a koala with unfettered access to gumleaves |
+| Symbol (ticker) | **TOKIN** | Not taken according to etherscan.io
 | Token standard | **ERC-20** (OpenZeppelin v5) | Simple and universally supported by wallets etc. |
 | Base asset | **???** | (ETH or USDC?) Most natural option for swaps. |
-| DEX | **Uniswap v2** | Most popular, deployed on Base as well as Ethereum L1 |
+| DEX | **Aerodrome** | Most suitable on Base for constant-product automated market maker deployments (cpAMM) |
 | Liquidity locking | **Burn to `0x...dEaD`** | Purity, stronger trust signal than time-locking. |
 | Total supply | **1 Billion** | A conventional amount for a memecoin supply. |
 | Seed liquidity | **???** | (Minimum amount to account for Base fees, DEX fees, min pool size) |
@@ -67,7 +67,7 @@ forge remappings > remappings.txt
 
 *why install the whole lot? I just get a stack of compiler warnings for contract code I am not using*
 
-Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version:
+Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version and avoid a bunch of deprecation warnings:
 
 ```bash
 [profile.default]
@@ -91,12 +91,42 @@ base         = { key = "${BASESCAN_API_KEY}", chain = 8453 }
 base_sepolia = { key = "${BASESCAN_API_KEY}", chain = 84532 }
 ```
 
-Verify that the project successfully builds with no warnings:
+Verify that the initialised project builds with no `solc` compiler warnings:
 
 ```bash
 forge build
 ```
 
+## Write the contract
+
+All EVM fungible tokens conform to the long-established [ERC-20](https://ethereum.org/developers/docs/standards/tokens/erc-20/) standard. The standard defines the *interface* (`IERC20.sol`); while [OpenZeppelin](https://github.com/openzeppelin/openzeppelin-contracts) (a leading blockchain security company) provides a battle-tested *abstract implementation* (`ERC20.sol`) designed to be inherited from. Ultimately, a straight meme coin implementation contains nothing novel that OZ's v5 implementation doesn't do already except for minting its own supply from the constructor. Otherwise all that is required is to customise the name and ticker symbol.
+
+(See [`/contracts/src/Tokin.sol`](../contracts/src/Tokin.sol))
+
+> [!NOTE]
+> `ERC20Permit` is the EIP-2612 extension to ERC-20 which was introduced to allow for approvals via off-chain signatures. ERC-20 works without it, but all basic tokens use this now because it makes using the token cheaper.
+
+```bash
+forge build # should be clean
+```
+
+## Write tests
+
+This is an academic exercise, since OpenZeppelin's ERC20 implementations already have thorough coverage. Test suite files always use the `.t.sol` suffix by convention. They execute on Foundry's modified version of the EVM, which contains harness features like "off-chain" transaction signing and the ability to modify the source address of contract function calls.
+
+(See [`/contracts/test/Tokin.t.sol`](../contracts/test/Tokin.t.sol)):
+
+```bash
+forge test -vvv # should be all green
+```
+
+## Create gas snapshot
+
+```bash
+forge snapshot # commit the resulting .gas-snapshot file
+```
+
+This command runs the test suite and logs the gas consumption for each test. It provides a record for the future detection of potentially costly performance regression due to refactors or dependency upgrades. Later, the `--check` and `--tolerance` flags (the latter for fuzz tests) can be used in CI jobs to ensure that unintended changes to the gas profile are caught prior to deployment.
 
 
 
