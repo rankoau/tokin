@@ -2,13 +2,16 @@
 pragma solidity ^0.8.26;
 
 import {Test} from "forge-std/Test.sol";
+import {TokinHandler} from "./TokinHandler.t.sol";
 import {Tokin} from "../src/Tokin.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 contract TokinTest is Test {
 
-    Tokin public token;
+    Tokin token;
+    TokinHandler tokenHandler;
+
     address deployer = makeAddr("deployer");
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
@@ -19,6 +22,10 @@ contract TokinTest is Test {
     function setUp() public {
         token = new Tokin(deployer);
         (carol, carolPrivateKey) = makeAddrAndKey("permitOwner");
+
+        // Invariant testing setup
+        tokenHandler = new TokinHandler(token, deployer);
+        targetContract(address(tokenHandler));
     }
 
     // The full supply should be 1 Billion * 10^18 wei
@@ -115,6 +122,7 @@ contract TokinTest is Test {
         assertEq(token.balanceOf(alice), balance);
     }
 
+    // Construct a valid signed approval (permit) transaction "off-chain" (compare `test_PermitInvalidSigner`)
     function _offchainSignedTransaction(uint256 value, uint256 deadline, uint256 nonce) view internal returns (uint8 v, bytes32 r, bytes32 s) {
         // EIP-712 hash of the message *type*, allowing .permit() to reconstruct the digest and prove
         // that the call could not have been destined for somewhere else expecting the same field layout.
@@ -178,6 +186,42 @@ contract TokinTest is Test {
         assertEq(token.nonces(carol), nonce);
     }
 
+    // Test that a permit is rejected unless signed by the owner themselves (forgery protection)
+    function test_PermitInvalidSigner() public {
+        uint256 value = 5_000_000 * 10 ** token.decimals();
+        uint256 deadline = block.timestamp + 1 hours;
+        uint256 nonce = token.nonces(carol);
+
+        (address attacker, uint256 attackerPrivateKey) = makeAddrAndKey("attacker");
+
+        // Build carol's permit digest (owner == carol).
+        bytes32 PERMIT_TYPEHASH = keccak256(
+            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+        );
+        bytes32 structHash = keccak256(
+            abi.encode(PERMIT_TYPEHASH, carol, bob, value, nonce, deadline)
+        );
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", token.DOMAIN_SEPARATOR(), structHash)
+        );
+
+        // Sign carol's digest with the attacker's key.
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerPrivateKey, digest);
+
+        // The error reports (recovered signer, expected owner) == (attacker, carol).
+        bytes memory revertData = abi.encodeWithSelector(
+            ERC20Permit.ERC2612InvalidSigner.selector, attacker, carol
+        );
+
+        // ecrecover inside permit will recover `attacker`, not carol, and the owner mismatch is rejected.
+        vm.expectRevert(revertData);
+        token.permit(carol, bob, value, deadline, v, r, s);
+
+        // Assert no side effects
+        assertEq(token.allowance(carol, bob), 0);
+        assertEq(token.nonces(carol), nonce);
+    }
+
     function _selectorExists(string memory sig, bytes memory args) internal returns (bool ok) {
         (ok, ) = address(token).call(bytes.concat(abi.encodeWithSignature(sig), args));
     }
@@ -190,4 +234,17 @@ contract TokinTest is Test {
         assertFalse(_selectorExists("issue(address,uint256)", abi.encode(alice, 1e18)));
     }
 
+    // Verify that no sequence of calls can alter the total supply
+    function invariant_supplyConstant() public view {
+        assertEq(token.totalSupply(), 1e27);
+    }
+
+    // Verify that no sequence of calls can causes the sum of holder balances to drift from the total supply
+    /// forge-config: default.invariant.runs = 100
+    /// forge-config: default.invariant.depth = 100    
+    function invariant_balancesSumToSupply() public view {
+        assertEq(tokenHandler.sumBalances(), token.totalSupply());
+    }
+
 }
+
