@@ -458,4 +458,31 @@ The two outputs add up to the total supply (`1e27`).
 
 ## Metadata setup
 
-## Decommission deployer
+Three files are needed:
+
+- Tokin's JSON metadata ([tokin-list.json](/token-metadata/tokin-list.json)) – describing just the one token, unlike trading venues which use the same format to describe *many* tokens.
+- A 1:1 aspect ratio [logo image](/token-metadata/logo.png) – 256 x 256 pixels is chosen to conform to the specs for most crypto image asset repositories.
+- A [_headers](/token-metadata/_headers) file for the root URL where these files are made publicly accessible, so that browsers are able to fetch the files from other domains (CORS).
+
+Create a Cloudflare pages project (`tokin` was available for this one), then use the following commands (from the project's root, not the `/contracts` folder) to upload the metadata files:
+
+```bash
+npx wrangler login
+npx wrangler pages deploy ./token-metadata --project-name tokin --branch main
+```
+
+The assets are publicly available as a result:
+
+- https://tokin.pages.dev/tokin-list.json
+- https://tokin.pages.dev/logo.png
+
+But here's the thing: in the ERC-20 token space, scanners, swap venues and wallets tend to require *real projects* with websites and social media handles, unlike Solana which is a slightly less scrutinised platform for meme coins. So, it appears that an *deliberately obscure* project like this can't have a logo without a bit of extra effort.
+
+Possible (free) paths if one *does* commit the extra effort:
+
+- BaseScan "Update Token Info" (I went through the process of proving ownership of the Tokin' contract address using `cast wallet sign --account tokin-mainnet <ATTESTATION>`, so it is linked to my BaseScan account.)
+- Aerodrome's token list – follow their GitHub submission process to make name and logo render in the swap UI.
+- Base official token list – follow their GitHub submission process to add TOKIN to Base ecosystem tooling.
+- Trust Wallet assets – follow their GitHub submission process to add TOKIN assets to the repository used by their wallet apps.
+
+https://tokin.pages.dev/tokin-list.json can also be pasted into a DEX UI's "Manage token lists" to show name/logo for *individual users* without any centralised approval process.
