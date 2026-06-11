@@ -138,7 +138,7 @@ For a meme coin deployment there are three short scripts needed:
 3. [`/contracts/script/BurnLP.s.sol`](../contracts/script/BurnLP.s.sol) to burn the liquidity provider tokens (making a "rug pull" impossible)
 
 **(1)** simply creates the token and logs its address. **(3)** relies on the fact that the liquidity provider tokens are *also* ERC-20 tokens, whose interface is already installed as part of the OpenZeppelin library.
-**(2)** requires *just the interfaces* for the relevant Aerodrome smart contracts. `cast interface` can generate these from ABI definitions fetched from the official source, but it requires an [etherscan.io](etherscan.io) API key, and unfortunately Base is [not in the free tier](https://docs.etherscan.io/supported-chains). Fortunately it is possible to simply copy from the published source code on [basescan.org](basescan.org) instead:
+**(2)** requires *just the interfaces* for the relevant Aerodrome smart contracts. `cast interface` can generate these from ABI definitions fetched from the official source, but it requires an [etherscan.io](https://etherscan.io) API key, and unfortunately Base is [not in the free tier](https://docs.etherscan.io/supported-chains). Fortunately it is possible to simply copy from the published source code on [basescan.org](basescan.org) instead:
 
 - [`/contracts/script/interface/aerodrome/IPoolFactory.sol`](/contracts/script/interface/aerodrome/IPoolFactory.sol)
 - [`/contracts/script/interface/aerodrome/IRouter.sol`](/contracts/script/interface/aerodrome/IRouter.sol)
@@ -395,9 +395,9 @@ The BaseScan verification can be confirmed at `https://basescan.org/address/<TOK
 
 The "trust trifecta" describes three guarantees that underpin the fair launch of a purely speculative asset:
 
-1. The deployer must not be able to mint more of it post-launch
-2. The liquidity pool must be seeded with the total supply
-2. Seed liquidity must be permanently locked in the pool
+1. The deployer **must not** be able to mint more of it post-launch
+2. The liquidity pool **must** be seeded with the **total** supply
+2. The paired currency used to initialise the token's value and facilitate trading **must** be **permanently locked** in the pool
 
 Check that the total supply is the full amount that was minted during token creation. This, combined with inspection of the [verified contract code](https://basescan.org/address/0x615288abCF1B9A08EF6680F0D592B4155D9eEd8f#code), is what guarantees that the deployer cannot materialise any more of this token in future:
 
