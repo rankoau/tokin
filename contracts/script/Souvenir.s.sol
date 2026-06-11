@@ -41,9 +41,10 @@ contract Souvenir is Script {
         uint256[] memory swapAmounts = router.swapExactETHForTokens{
             // Buy a reasonably small portion of the supply (should be about ~4%)
             value: purchaseAmount
-            }( //
+            }( // The minimum amount of Tokin' accepted as the result of the swap. If, during the transaction,
+               // the trade resolves below this value, the transaction will revert.
                 minimumTokinOut,
-                // Route the swap through the WETH:Tokin' pool (there are no other options here)
+                // Route the swap through the WETH:Tokin' pool
                 route,
                 // Deliver the Tokin' to the designated souvenir recipient
                 recipient,

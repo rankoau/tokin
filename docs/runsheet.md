@@ -6,14 +6,14 @@ This document was assembled while working through the process end-to-end.
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Chain | **Base (Ethereum L2)** | Strongest memecoin culture of any L2 due to  |
+| Chain | **Base (Ethereum L2)** | Strongest memecoin culture of any L2, partly due to its association with Coinbase |
 | Name | **Tokin'** | A joke about a koala with unfettered access to gumleaves |
 | Symbol (ticker) | **TOKIN** | Not taken according to etherscan.io
-| Token standard | **ERC-20** (OpenZeppelin v5) | Simple and universally supported by wallets etc. |
-| Base asset | **(W)ETH** | Most natural option for swaps. All ETH in Uniswap v2-style pools use Wrapped ETH (WETH), because the pools only work with ERC-20 tokens. |
-| DEX | **Aerodrome** | Uniswap v2-style DEX most suitable on Base for constant-product automated market maker deployments (cpAMM) |
+| Token standard | **ERC-20** (OpenZeppelin v5) | Simple and universally supported by wallets and swap venues |
+| Base asset | **(W)ETH** | Most natural option for swaps on DEX platforms. All ETH in Uniswap v2-style pools use Wrapped ETH (WETH), because the pools only work with ERC-20 tokens. |
+| DEX | **Aerodrome** | Uniswap v2-style DEX most suitable on Base for constant-product (x*y=k) automated market maker deployments (cpAMM) |
 | Liquidity locking | **Burn to `0x...dEaD`** | Purity, stronger trust signal than time-locking or using `address(0)`. |
-| Total supply | **1 Billion** | A conventional amount for a memecoin supply. |
+| Total supply | **1 Billion** | A conventional amount for a memecoin supply |
 | Seed liquidity | **0.005 ETH** | Around $10-20 (AUD), throwaway amount, enough to observe the pricing mechanics | 
 
 ## Install Foundry
@@ -59,13 +59,15 @@ cd contracts
 forge install OpenZeppelin/openzeppelin-contracts@v5.6.1
 ```
 
+Note that all the contract code in both the standard library and OZ's library is written in Solidity. This language is compiled to EVM bytecode using the `solc` compiler, which is what `forge build` uses under the hood.
+
 Write an explicit `remappings.txt` to ensure that both `forge` and IDE plugins understand `@openzeppelin/*` import paths:
 
 ```bash
 forge remappings > remappings.txt
 ```
 
-Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version and avoid a bunch of deprecation warnings:
+Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version and avoid a bunch of `solc` deprecation warnings:
 
 ```bash
 [profile.default]
@@ -114,7 +116,7 @@ This command runs the test suite and logs the gas consumption for each test. It 
 
 ## Configure RPC provider endpoints
 
-In `contracts/foundry.toml`, set the URLs of the Base `mainnet` and `local` JSON-RPC endpoints (the latter will be used for staging rather than the Sepolia `testnet`, which will make sense later). [mainnet.base.org](https://mainnet.base.org) is free and requires zero setup. It is also rate-limited and occasionally flaky.
+In `contracts/foundry.toml`, set the URLs of the Base `mainnet` and `local` JSON-RPC endpoints (the latter will be used for staging rather than the Sepolia `testnet`, which will make sense later). `mainnet.base.org` is free and requires zero setup. It is also rate-limited and occasionally flaky.
 
 ```bash
 [rpc_endpoints]
@@ -178,7 +180,7 @@ cast wallet list
 anvil --fork-url https://mainnet.base.org --chain-id 8453
 ```
 
-This command launches a single-node instance of the Base network. The local chain's genesis block is "pinned" to the most recent block on the real blockchain. It then forwards state reads to the remote RPC and caches them locally; new transactions build on top without ever touching the real network. This technique provides much stronger guarantees than Sepolia testnets when *you do not control the contracts*: current bytecode and addresses are read directly from mainnet, whereas on a testnet they are frequently out of date; many projects do not maintain a testnet presence at all.
+This command launches a single-node instance of the Base network. The local chain's genesis block is "pinned" to the most recent block on the real blockchain. It then forwards state reads to the remote RPC and caches them locally; new transactions build on top without ever touching the real network. This technique provides much stronger guarantees than Sepolia testnets when *you do not control the contracts*: current bytecode and addresses are read directly from mainnet, whereas on a testnet they are frequently out of date. Many projects do not maintain a testnet presence at all.
 
 A couple of sense checks once it's running:
 
@@ -236,7 +238,7 @@ Some interesting things to note:
 - Even though ETH was sent with the contract invocation to fund the liquidity, it is technically *wrapped* ETH (WETH) that gets deposited in the pool, because both sides of the equation must be ERC-20 tokens.
 - The amounts are expressed in their base denominations (i.e. it is *technically* 5e15 "wrapped Wei")
 - The amount of LP minted is `floor(sqrt(reserveTOKIN × reserveETH)) − MINIMUM_LIQUIDITY`, i.e. `sqrt(1e27 × 5e15) − 1000` – the geometric mean of the two reserves minus a tiny amount serving as an anti-manipulation mechanism against nefarious minters (the mathematical reasoning is confusing but sound when you read up on it).
-- The amount ETH sent to the pool did *not* include the gas cost incurred by the transaction. Slightly more than 0.005 ETH was spent.
+- The amount of ETH sent to the pool did *not* include the gas cost incurred by the transaction. Slightly more than 0.005 ETH was spent.
 
 Add the value LP token address to [`/contracts/.env`](/contracts/.env) for use in the next step:
 
@@ -273,7 +275,7 @@ Send 0.0005 ETH to this address as a test (from a personal wallet or CEX app), t
 cast balance <MAINNET_DEPLOYER> --rpc-url base --ether # 0.000500000000000000
 ```
 
-Once confirmed, send another ~0.01 ETH to fund the token launch.
+Once confirmed, send another ~0.01 ETH to cover the token launch, with a buffer.
 
 ## Deploy the Tokin' contract (mainnet)
 
@@ -335,7 +337,7 @@ Burn address LP held: 2236067977499789695409
 
 Contract verification refers to the reconciliation, by a trusted third party, of the contract's deployed bytecode with its claimed source code. Projects that fail to do this are often flagged as honeypots. For EVM blockchain contracts this activity is relatively fragmented – there is no central regime/protocol through which parties share verification statuses for addresses, and so there are numerous avenues the developer must pursue in order to maximise trust in a new token across the chain's ecosystem (wallets, explorers, swap venues, etc.)
 
-At time of writing, the only way to *automate* this for free is by using [Sourcify](https://sourcify.dev/), which is now thankfully the default option for the `forge verify-contract` command. Other methods require API keys associated with paid subscriptions.
+At time of writing, the only way to automate this for free is by using [Sourcify](https://sourcify.dev/), which is now thankfully the default option for the `forge verify-contract` command. Other methods require API keys associated with paid subscriptions.
 
 First, generate the Tokin' constructor call with the deployer's address: 
 
@@ -391,6 +393,12 @@ The BaseScan verification can be confirmed at `https://basescan.org/address/<TOK
 
 ## Confirm the trust trifecta on-chain
 
+The "trust trifecta" describes three guarantees that underpin the fair launch of a purely speculative asset:
+
+1. The deployer must not be able to mint more of it post-launch
+2. The liquidity pool must be seeded with the total supply
+2. Seed liquidity must be permanently locked in the pool
+
 Check that the total supply is the full amount that was minted during token creation. This, combined with inspection of the [verified contract code](https://basescan.org/address/0x615288abCF1B9A08EF6680F0D592B4155D9eEd8f#code), is what guarantees that the deployer cannot materialise any more of this token in future:
 
 ```bash
@@ -398,7 +406,7 @@ cast call <TOKIN_ADDRESS> "totalSupply()(uint256)" --rpc-url base
 # 1000000000000000000000000000 [1e27]
 ```
 
-Check that the pool balance is the same as the total supply, which confirms that the full liquidity was locked (depending on when this check is performed, bots or souvenir purchases may have reduced this number):
+Check that the pool balance is the same as the total supply (depending on when this check is performed, bots or souvenir purchases may have reduced this number. In that case, it is necessary to prove that the deployer is not one of the holders):
 
 ```bash
 cast call <TOKIN_ADDRESS> "balanceOf(address)(uint256)" <POOL_ADDRESS> --rpc-url base
@@ -406,7 +414,7 @@ cast call <TOKIN_ADDRESS> "balanceOf(address)(uint256)" <POOL_ADDRESS> --rpc-url
 ```
 
 > [!NOTE]
-> The pool address and the LP token address are the same; in Aerodrome's setup a single contract implements both.
+> The pool address and the LP token address are the same, because in Aerodrome's setup a single contract implements both.
 
 Now check that the full supply of liquidity provider (LP) tokens has been sent to the canonical burn address, which prevents a developer "rug pull":
 
@@ -419,8 +427,8 @@ cast call <LP_TOKEN_ADDRESS> "balanceOf(address)(uint256)" 0x0000000000000000000
 
 Without using Aerodrome's UI, the most straightforward way of performing this final on-chain action is to write another dedicated script. It is a two-part automation:
 
-1. Get a "quote" from the router to determine the expected amount of Tokin' in return for a given amount of ETH, taking into account inflation caused by the trade itself; 
-2. Call the router to execute a direct swap using the same amount of ETH, setting a minimum floor below the quote's expected Tokin' amount to guard against further slippage.
+1. Get a "quote" from the router to determine the expected amount of Tokin' in return for a given amount of ETH, taking into account the movement caused by the trade itself; 
+2. Call the router to execute a direct swap using the same amount of ETH, setting a minimum floor below the quote's expected Tokin' output to guard against further slippage.
 
 See [`/contracts/script/Souvenir.s.sol`](/contracts/script/Souvenir.s.sol). `SOUVENIR_RECIPIENT=0x...` is added to [`/contracts/.env`](/contracts/.env) to set the recipient's address (a personal EVM wallet address).
 
@@ -445,7 +453,7 @@ ETH spend: 200000000000000
 Tokin' received: 38350578912951494403200369 (i.e. amount 38M Tokin')
 ```
 
-And confirm on-chain that it actually worked:
+Confirm on-chain that it actually worked:
 
 ```bash
 cast call <TOKIN_ADDRESS> "balanceOf(address)(uint256)" <SOUVENIR_RECIPIENT> --rpc-url base
@@ -455,6 +463,8 @@ cast call <TOKIN_ADDRESS> "balanceOf(address)(uint256)" <POOL_ADDRESS> --rpc-url
 ```
 
 The two outputs add up to the total supply (`1e27`).
+
+Incidentally, this initial swap is what triggers DEX screeners to begin indexing the pool. A few minutes later, `https://dexscreener.com/base/<POOL_ADDRESS>` becomes live. 
 
 ## Metadata setup
 
@@ -476,9 +486,9 @@ The assets are publicly available as a result:
 - https://tokin.pages.dev/tokin-list.json
 - https://tokin.pages.dev/logo.png
 
-But here's the thing: in the ERC-20 token space, scanners, swap venues and wallets tend to require *real projects* with websites and social media handles, unlike Solana which is a slightly less scrutinised platform for meme coins. So, it appears that an *deliberately obscure* project like this can't have a logo without a bit of extra effort.
+But here's the thing: in the ERC-20 token space, scanners, swap venues and wallets tend to require *real projects* with websites and social media handles, unlike Solana which is a slightly less scrutinised platform for meme coins. So, it appears that a deliberately obscure project like this one can't even sport a *logo*. It's also nearly impossible to buy without the purchaser having access to the token address.
 
-Possible (free) paths if one *does* commit the extra effort:
+Possible (free) paths if one *does* commit the extra effort (including dropping an `index.html` at https://tokin.pages.dev):
 
 - BaseScan "Update Token Info" (I went through the process of proving ownership of the Tokin' contract address using `cast wallet sign --account tokin-mainnet <ATTESTATION>`, so it is linked to my BaseScan account.)
 - Aerodrome's token list – follow their GitHub submission process to make name and logo render in the swap UI.
@@ -486,3 +496,7 @@ Possible (free) paths if one *does* commit the extra effort:
 - Trust Wallet assets – follow their GitHub submission process to add TOKIN assets to the repository used by their wallet apps.
 
 https://tokin.pages.dev/tokin-list.json can also be pasted into a DEX UI's "Manage token lists" to show name/logo for *individual users* without any centralised approval process.
+
+## Decommissioning the deployer
+
+In principle, it is good practice to destroy the deployer's wallet in order to ensure that the token is fully and permanently "hands off" (though, in reality, after a genuine fair-launch all the deployer can do is prove their association with the address used in the constructor). But this would also preclude the completion of the metadata setup described in the preceding section, so for now, I will leave it alone.
