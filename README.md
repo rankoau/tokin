@@ -2,6 +2,8 @@
 
 This repo documents in detail the "fair launch" of a meme coin on **Base**, an Ethereum L2 blockchain. It is a sibling project to https://github.com/rankoau/obstok. It turned out to be a *very different project* to OBSTOK.
 
+<img src="docs/images/tokin.png" alt="tokin" style="width:150px;"/>
+
 Examine its (virtually non-existent) activity: [DEX Screener](https://dexscreener.com/base/0x168a0f0f7bE446F67FfE98FfBd98db4251F82740) / [Birdeye](https://birdeye.so/base/token/0x615288abCF1B9A08EF6680F0D592B4155D9eEd8f).
 
 ![dexscreener](docs/images/tokin-dexscreener.png)

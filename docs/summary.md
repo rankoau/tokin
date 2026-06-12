@@ -2,8 +2,6 @@
 
 **Tokin'** (TOKIN) was launched on the Base (Ethereum L2) blockchain. The detailed build/test/launch process is documented in [runsheet.md](runsheet.md).
 
-<img src="images/tokin.png" alt="tokin" style="width:150px;"/>
-
 ## Live addresses
 
 - Token address: [0x615288abCF1B9A08EF6680F0D592B4155D9eEd8f](https://basescan.org/address/0x615288abCF1B9A08EF6680F0D592B4155D9eEd8f)
@@ -13,6 +11,8 @@
 - Metadata: https://tokin.pages.dev/tokin-list.json
 
 ## Visualisation
+
+![tokin-arch](images/tokin-arch.png)
 
 ## Not in scope
 
