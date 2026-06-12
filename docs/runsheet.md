@@ -67,7 +67,7 @@ Write an explicit `remappings.txt` to ensure that both `forge` and IDE plugins u
 forge remappings > remappings.txt
 ```
 
-Update the default `foundry.toml` configuration to explicitly set the Solidy compiler version and avoid a bunch of `solc` deprecation warnings:
+Update the default `foundry.toml` configuration to explicitly set the Solidity compiler version and avoid a bunch of `solc` deprecation warnings:
 
 ```bash
 [profile.default]
@@ -180,7 +180,7 @@ cast wallet list
 anvil --fork-url https://mainnet.base.org --chain-id 8453
 ```
 
-This command launches a single-node instance of the Base network. The local chain's genesis block is "pinned" to the most recent block on the real blockchain. It then forwards state reads to the remote RPC and caches them locally; new transactions build on top without ever touching the real network. This technique provides much stronger guarantees than Sepolia testnets when *you do not control the contracts*: current bytecode and addresses are read directly from mainnet, whereas on a testnet they are frequently out of date. Many projects do not maintain a testnet presence at all.
+This command launches a single-node instance of the Base network. The local chain's genesis block is "pinned" to the most recent block on the real blockchain. It then forwards state reads to the RPC interface and caches them locally; new transactions build on top without ever touching the real network. This technique provides much stronger guarantees than Sepolia testnets when *you do not control the contracts*: current bytecode and addresses are read directly from mainnet, whereas on a testnet they are frequently out of date. Many projects do not maintain a testnet presence at all.
 
 A couple of sense checks once it's running:
 

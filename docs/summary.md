@@ -14,6 +14,8 @@
 
 ## Visualisation
 
+![tokin-arch](images/tokin-arch.png)
+
 ## Not in scope
 
 To keep this experiment innocent, avoiding even the remotest possibility of future scrutiny:

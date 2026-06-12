@@ -1,5 +1,6 @@
 .DS_Store
 *.bkp
+*.dtmp
 out/
 cache/
 .env
